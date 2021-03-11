@@ -1,0 +1,32 @@
+{
+  "name": "learn-starter",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "prettier": "prettier -w .",
+    "export": "next export",
+    "hosting-pipeline": "next build && next export && firebase deploy --only hosting"
+  },
+  "dependencies": {
+    "date-fns": "^2.19.0",
+    "gray-matter": "^4.0.2",
+    "next": "^10.0.0",
+    "prism-themes": "^1.5.0",
+    "prismjs": "^1.23.0",
+    "react": "17.0.1",
+    "react-dom": "17.0.1",
+    "remark": "^13.0.0",
+    "remark-html": "^13.0.1"
+  },
+  "devDependencies": {
+    "prettier": "^2.2.1"
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "tabWidth": 2
+  }
+}
