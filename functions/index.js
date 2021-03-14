@@ -1,3 +1,3 @@
-const helloWorld = require('./helloWorld.js')
+const getChartConfig = require('./getChartConfig.js')
 
-exports.helloWorld = helloWorld
+exports.getChartConfig = getChartConfig

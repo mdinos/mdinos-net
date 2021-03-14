@@ -1,22 +1,25 @@
 {
-  "name": "learn-starter",
+  "name": "mdinos-net",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:firebase": "next build && next export && firebase emulators:start",
     "build": "next build",
     "start": "next start",
     "prettier": "prettier -w .",
     "export": "next export",
-    "hosting-pipeline": "next build && next export && firebase deploy --only hosting"
+    "deploy": "next build && next export && firebase deploy --only hosting"
   },
   "dependencies": {
+    "chart.js": "^3.0.0-beta.13",
     "date-fns": "^2.19.0",
     "gray-matter": "^4.0.2",
     "next": "^10.0.0",
     "prism-themes": "^1.5.0",
     "prismjs": "^1.23.0",
     "react": "17.0.1",
+    "react-chartjs-2": "^2.11.1",
     "react-dom": "17.0.1",
     "remark": "^13.0.0",
     "remark-html": "^13.0.1"

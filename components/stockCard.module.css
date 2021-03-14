@@ -1,0 +1,24 @@
+.chartBoxLink {
+  text-decoration: none;
+  color: #fff;
+}
+
+.chart {
+  width: 48%;
+  display: block;
+  float: left;
+  background-color: #1e2c3c;
+  border-radius: 13px;
+  padding-left: 4%;
+  padding-right: 4%;
+  padding-top: 3%;
+  padding-bottom: 3%;
+  text-align: center;
+  margin: 1%;
+  transition: 0.5s;
+  box-shadow: 7px 9px 24px 3px rgba(0, 0, 0, 0.09);
+}
+
+.chart:hover {
+  background-color: #324963;
+}

@@ -24,7 +24,7 @@ export default function Blog({ allPostsData }) {
       <h1 className={utilStyles.headingXl}>Blog</h1>
       {allPostsData.map(({ id, date, title }) => (
         <>
-          <Link href={`/posts/${id}`}>
+          <Link href={`/blog/posts/${id}`}>
             <a className={utilStyles.blogCardLink}>
               <BlogCard>
                 <h1 className={utilStyles.paragraphTextBig} key={id}>

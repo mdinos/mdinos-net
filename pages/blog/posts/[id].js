@@ -1,8 +1,8 @@
-import Layout from '../../components/layout'
+import Layout, { siteTitle } from '../../../components/layout'
 import Head from 'next/head'
-import Date from '../../components/date'
-import utilStyles from '../../styles/utils.module.css'
-import { getAllPostIds, getPostData } from '../../lib/posts'
+import Date from '../../../components/date'
+import utilStyles from '../../../styles/utils.module.css'
+import { getAllPostIds, getPostData } from '../../../lib/posts'
 
 export async function getStaticProps({ params }) {
   const postData = await getPostData(params.id)
@@ -25,7 +25,9 @@ export default function Post({ postData }) {
   return (
     <Layout blog blogPost>
       <Head>
-        <title>{postData.title}</title>
+        <title>
+          {postData.title} {siteTitle}
+        </title>
       </Head>
       <article>
         <h1 className={utilStyles.headingXl}>{postData.title}</h1>

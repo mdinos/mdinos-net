@@ -22,14 +22,16 @@ export default function Home({ allPostsData }) {
         <title>Home {siteTitle}</title>
       </Head>
       <section className={utilStyles.headingMd}>
+        <p>I'm a Cloud Engineer, but I do other things too!</p>
         <p>
-          I'm a Cloud Engineer, but I do other things too!
+          This site is currently under construction, but feel free to have a
+          poke around.
         </p>
       </section>
       <h2 className={utilStyles.headingXl}>Blog</h2>
       {allPostsData.map(({ id, date, title }) => (
         <>
-          <Link href={`/posts/${id}`}>
+          <Link href={`/blog/posts/${id}`}>
             <a className={utilStyles.blogCardLink}>
               <BlogCard>
                 <h1 className={utilStyles.paragraphTextBig} key={id}>

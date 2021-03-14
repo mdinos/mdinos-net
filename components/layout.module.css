@@ -23,14 +23,14 @@
   float: left;
   text-align: center;
   text-decoration: none;
-  padding-left: 1em;
-  padding-right: 1em;
-  padding-top: 0.3em;
-  padding-bottom: 0.3em;
+  padding-left: auto;
+  padding-right: auto;
+  padding-top: 0.4em;
+  padding-bottom: 0.4em;
   margin-left: 0.2em;
   margin-right: 0.2em;
   width: 5em;
-  border-radius: 20px;
+  border-radius: 25px;
   font-weight: bold;
   transition: 0.5s;
 }
@@ -52,4 +52,5 @@
 .footer {
   overflow: hidden;
   float: inline-end;
+  clear: both;
 }

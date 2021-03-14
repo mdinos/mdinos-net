@@ -7,6 +7,6 @@ This is a react/next based site intended for hosting on firebase.
 npm run dev
 
 # deploy to firebase
-npm run hosting-pipeline 
+npm run hosting-pipeline
 firebase deploy --only functions
 ```
