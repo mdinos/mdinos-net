@@ -5,30 +5,59 @@ const firebaseConfig = { projectId: 'mdinos-net' }
 const firebaseFunctionsRegion = 'europe-west2'
 
 if (document.readyState !== 'loading') {
-  console.log('document ready')
   init()
 } else {
   document.addEventListener('DOMContentLoaded', function () {
-    console.log('domcontentloaded')
     init()
   })
 }
 
-async function generateStockChart(functions, canvasContext) {
+function arraysMatch(a, b) {
+  if (a.length !== b.length) {
+    return false
+  }
+  a.forEach((v) => {
+    if (!b.includes(v)) {
+      return false
+    }
+  })
+  return true
+}
+
+async function callGetChartConfigs(functions, chartNames) {
   let config
   await functions
-    .httpsCallable('getChartConfig-main')()
+    .httpsCallable('getChartConfig-main')({
+      charts: chartNames,
+    })
     .then((res) => {
       config = res.data
     })
     .catch((err) => {
       console.error(err)
     })
-
-  let chart = new Chart(canvasContext, config)
+  return config
 }
 
-function init() {
+async function init() {
+  // dismiss disclaimer button
+  const dissmissCacheKey = 'shouldDismissCardImmediately'
+  let button = document.getElementById('dismiss')
+  let checkbox = document.getElementById('neverShowAgain')
+  let shouldDismissCardImmediately = localStorage.getItem(dissmissCacheKey)
+  if (shouldDismissCardImmediately === 'true') {
+    button.parentNode.remove()
+  } else {
+    button.addEventListener('click', () => {
+      let checkboxValue = checkbox.checked
+      button.parentNode.remove()
+      if (checkboxValue) {
+        localStorage.setItem(dissmissCacheKey, true)
+      }
+    })
+  }
+
+  // Initialise firebase
   let myApp
   let functions
   try {
@@ -42,25 +71,73 @@ function init() {
     console.error(e)
   }
 
+  // get chart configs
   const chartNames = ['uk', 'usa', 'eu']
-  chartNames.forEach((chartName) => {
-    let chart = document.getElementById(chartName).getContext('2d')
-    generateStockChart(functions, chart)
+  const localStorageKey = 'mdinosNetStockChartConfigs'
+  const timeNow = Date.now()
+  const fiveMinutes = 1000 * 60 * 5
+  const localStorageData = JSON.parse(localStorage.getItem(localStorageKey))
+  let configs
 
-    // Animate enlargening on click
+  // decide whether to use cache data or renew with API call
+  const refreshData = async () => {
+    const response = await callGetChartConfigs(functions, chartNames)
+    localStorage.setItem(localStorageKey, JSON.stringify(response))
+    configs = response.configs
+  }
+
+  if (localStorageData !== 'undefined' && localStorageData !== null) {
+    if (
+      timeNow - localStorageData.age > fiveMinutes ||
+      !arraysMatch(Object.keys(localStorageData.configs), chartNames)
+    ) {
+      await refreshData()
+    } else {
+      configs = localStorageData.configs
+    }
+  } else {
+    await refreshData()
+  }
+
+  chartNames.forEach((chartName) => {
+    // create chart with data
+    let canvas = document.getElementById(chartName)
+    let canvasContext = canvas.getContext('2d')
+    // generate error message on failure to load
+    if (!configs[chartName]) {
+      let parent = canvas.parentNode
+      canvas.remove()
+      let errorMsg = document.createElement('p')
+      parent.prepend(errorMsg)
+      errorMsg.innerHTML =
+        "Failed to retrieve chart data, it's probably not your fault."
+      parent.classList.add('errorMsg')
+    }
+    new Chart(canvasContext, configs[chartName])
+
+    // Animate enlargening on double click
     let card = document.getElementById(`${chartName}-card`)
-    card.addEventListener('click', () => {
-      let otherChartNames = []
+    card.addEventListener('dblclick', () => {
+      let otherCards = []
       chartNames.forEach((_chartName) => {
         if (_chartName != chartName) {
-          otherChartNames.push(_chartName)
+          let _card = document.getElementById(`${_chartName}-card`)
+          otherCards.push(_card)
         }
       })
-      card.classList.toggle('clickStockBox')
-      otherChartNames.forEach((_chartName) => {
-        let c = document.getElementById(`${_chartName}-card`)
-        c.classList.remove('clickStockBox')
-      })
+      if (card.classList.contains('clickStockBox')) {
+        card.classList.remove('clickStockBox')
+        otherCards.forEach((_card) => {
+          _card.classList.remove('clickStockBox')
+          _card.classList.remove('isInvisible')
+        })
+      } else {
+        card.classList.add('clickStockBox')
+        otherCards.forEach((_card) => {
+          _card.classList.remove('clickStockBox')
+          _card.classList.add('isInvisible')
+        })
+      }
     })
   })
 }

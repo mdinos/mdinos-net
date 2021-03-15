@@ -1,0 +1,65 @@
+.card {
+  background-color: #1e2c3c;
+  border-radius: 13px;
+  width: 90%;
+  text-align: left;
+  display: flex;
+  align-items: left;
+  flex-direction: column;
+  float: center;
+  margin: 0 auto;
+  padding: 0.2rem 2rem;
+  margin-bottom: 1.4rem;
+  box-shadow: 7px 9px 24px 3px rgba(0, 0, 0, 0.09);
+  border-color: #c42ee6;
+  border-style: solid;
+  border-width: 0.16rem;
+  transition-duration: 1s;
+}
+
+.dismissBtn {
+  color: white;
+  background: rgb(7, 29, 119);
+  background: linear-gradient(
+    0deg,
+    rgba(0, 62, 255, 1) 0%,
+    rgba(0, 106, 255, 1) 36%,
+    rgba(0, 154, 255, 1) 100%
+  );
+  width: 6.5rem;
+  padding: 0.05rem;
+  margin-top: -1rem;
+  margin-left: auto;
+  margin-right: -1rem;
+  margin-bottom: 0.8rem;
+  border-radius: 8px;
+  border: none;
+  box-shadow: 7px 9px 24px 3px rgba(0, 0, 0, 0.09);
+  font-weight: 600;
+  letter-spacing: -0.05;
+  float: right;
+  position: relative;
+  z-index: 5;
+}
+
+.dismissBtn:active {
+  background: linear-gradient(
+    0deg,
+    rgba(0, 62, 255, 1) 100%,
+    rgba(0, 106, 255, 1) 64%,
+    rgba(0, 154, 255, 1) 0%
+  );
+}
+
+.neverShowAgainCheckbox {
+  z-index: 4;
+  float: left;
+  position: relative;
+  top: 0.7rem;
+  left: -1rem;
+}
+
+.checkboxLabel {
+  padding: 0;
+  margin: 0;
+}
