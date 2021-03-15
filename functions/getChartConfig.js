@@ -23,26 +23,26 @@ exports.main = functions
   .runWith(runtimeOpts)
   .region(region)
   .https.onCall((data, context) => {
-    response = {
+    const response = {
       age: Date.now(),
       configs: {},
     }
     data.charts.forEach((chartName) => {
       let stockList
       switch (chartName) {
-        case 'uk':
-          stockList = ukStocks
-          break
-        case 'usa':
-          stockList = usaStocks
-          break
-        case 'eu':
-          stockList = euStocks
-          break
-        default:
-          throw new Error('Failed to find stockList with matching identifier')
+      case 'uk':
+        stockList = ukStocks
+        break
+      case 'usa':
+        stockList = usaStocks
+        break
+      case 'eu':
+        stockList = euStocks
+        break
+      default:
+        throw new Error('Failed to find stockList with matching identifier')
       }
-      let randData = []
+      const randData = []
       stockList.forEach(() => {
         randData.push(getRandomInt(30))
       })
