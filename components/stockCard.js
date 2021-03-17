@@ -1,6 +1,8 @@
 import styles from './stockCard.module.css'
 import utilStyles from '../styles/utils.module.css'
 
+// @refresh reset
+
 export default function StockCard({ uk, usa, eu }) {
   let name
   name = !uk ? null : 'uk'

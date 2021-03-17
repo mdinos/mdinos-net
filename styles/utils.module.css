@@ -84,3 +84,9 @@
 .blogCardLink:hover {
   text-decoration: none;
 }
+
+#charts {
+  margin-bottom: 1rem;
+  height: 100%;
+  clear: both;
+}
