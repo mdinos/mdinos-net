@@ -1,12 +1,6 @@
 const functions = require('firebase-functions')
-const runtimeOpts = require('./runtime.js')
-const finnhub = require('finnhub')
+const { callableRuntimeOpts, region } = require('./runtime.js')
 
-const finnhubApiKey = finnhub.ApiClient.instance.authentications['api_key']
-finnhubApiKey.apiKey = process.env.FINNHUB_API_KEY
-const finnhubClient = new finnhub.DefaultApi()
-
-const region = 'europe-west2'
 const availableColours = [
   '#003f5c',
   '#2f4b7c',
@@ -17,14 +11,6 @@ const availableColours = [
   '#ff7c43',
   '#ffa600',
 ]
-
-function dealWithFinnhubResponse(error, data, response) {
-  if (!error) {
-    return data.pc
-  } else {
-    return 0
-  }
-}
 
 const usaStocks = () => {
   return {
@@ -58,12 +44,6 @@ const usaStocks = () => {
       qty: 0.0910634,
       prevClose: finnhubClient.quote("LMT", dealWithFinnhubResponse(error, data, response))
     },
-    JNJ: {
-      currency: 'usd',
-      avgBuy: 162.22,
-      qty: 0.1475738,
-      prevClose: finnhubClient.quote("JNJ", dealWithFinnhubResponse(error, data, response))
-    },
     BUD: {
       currency: 'usd',
       avgBuy: 62.57,
@@ -87,7 +67,7 @@ const getRandomInt = (max) => {
 }
 
 exports.main = functions
-  .runWith(runtimeOpts)
+  .runWith(callableRuntimeOpts)
   .region(region)
   .https.onCall((data, context) => {
     const response = {
