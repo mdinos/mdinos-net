@@ -4,9 +4,6 @@ Chart.register(...registerables)
 const firebaseConfig = { projectId: 'mdinos-net' }
 const firebaseFunctionsRegion = 'europe-west2'
 
-document.addEventListener('readystatechange', () => console.log(document.readyState));
-window.onload = () => console.log('window onload');
-
 if (document.readyState !== 'loading') {
   init()
 } else {

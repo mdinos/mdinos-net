@@ -1,80 +1,71 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable require-jsdoc */
 const functions = require('firebase-functions')
-const { callableRuntimeOpts, region } = require('./runtime.js')
+const {Firestore} = require('@google-cloud/firestore')
+const {callableRuntimeOpts, region} = require('./runtime.js')
 
-const availableColours = [
-  '#003f5c',
-  '#2f4b7c',
-  '#665191',
-  '#a05195',
-  '#d45087',
-  '#f95d6a',
-  '#ff7c43',
-  '#ffa600',
-]
+const firestore = new Firestore()
 
-const usaStocks = () => {
-  return {
-    WFC: {
-      currency: 'usd',
-      avgBuy: 39.29,
-      qty: 0.60423,
-      prevClose: finnhubClient.quote("WFC", dealWithFinnhubResponse(error, data, response))
-    },
-    VMW: {
-      currency: 'usd',
-      avgBuy: 146.97,
-      qty: 0.1590161,
-      prevClose: finnhubClient.quote("VMW", dealWithFinnhubResponse(error, data, response))
-    },
-    MSFT: {
-      currency: 'usd',
-      avgBuy: 239.24,
-      qty: 0.1002765,
-      prevClose: finnhubClient.quote("MSFT", dealWithFinnhubResponse(error, data, response))
-    },
-    MRK: {
-      currency: 'usd',
-      avgBuy: 76.43,
-      qty: 0.310613,
-      prevClose: finnhubClient.quote("MRK", dealWithFinnhubResponse(error, data, response))
-    },
-    LMT: {
-      currency: 'usd',
-      avgBuy: 347.67,
-      qty: 0.0910634,
-      prevClose: finnhubClient.quote("LMT", dealWithFinnhubResponse(error, data, response))
-    },
-    BUD: {
-      currency: 'usd',
-      avgBuy: 62.57,
-      qty: 0.381025,
-      prevClose: finnhubClient.quote("BUD", dealWithFinnhubResponse(error, data, response))
-    },
-    GOOGL: {
-      currency: 'usd',
-      avgBuy: 2097.04,
-      qty: 0.114018,
-      prevClose: finnhubClient.quote("GOOGL", dealWithFinnhubResponse(error, data, response))
-    }
+const availableColours = ['#003f5c', '#2f4b7c', '#665191', '#a05195',
+  '#d45087', '#f95d6a', '#ff7c43', '#ffa600']
+
+const ukStocks = [
+  'RDSB.LON', 'LLOY.LON', 'AV.LON', 'BP.LON', 'NWG.LON', 'IMB.LON', 'HSBA.LON']
+
+const usaStocks = ['WFC', 'MSFT', 'VMW', 'LMT', 'BUD', 'GOOGL', 'MRK']
+
+const euStocks = ['DAI.DEX', 'BMW.DEX', 'RNO.PAR', 'TEF']
+
+function sortByDate(a, b) {
+  if (a.date < b.date) {
+    return 1
   }
+  if (a.date > b.date) {
+    return -1
+  }
+  return 0
 }
 
-const ukStocks = ['RDSB', 'LLOY', 'AV', 'BP', 'NWG', 'IMB']
-//const usaStocks = ['WFC', 'MSFT', 'VMW', 'LMT', 'BUD', 'GOOGL', 'JNJ', 'MRK']
-const euStocks = ['DAI', 'BMW', 'RNO', 'TEF']
-const getRandomInt = (max) => {
-  return Math.floor(Math.random() * Math.floor(max))
+function selectLatest(docs) {
+  const documentIds = []
+  for (const doc of docs) {
+    const id = doc.id
+    documentIds.push(id)
+  }
+  functions.logger.info(documentIds)
+  const latestDocument = documentIds.sort(sortByDate)[documentIds.length - 1]
+  functions.logger.info(latestDocument)
+  return latestDocument
+}
+
+async function getLatestDocFromCollection(collection) {
+  let data
+  try {
+    const collectionReference = firestore.collection(collection)
+    const snapshot = await collectionReference.get()
+    const docs = snapshot.docs
+    const latestDocumentId = selectLatest(docs)
+    const documentReference = await collectionReference.doc(latestDocumentId)
+      .get()
+    data = documentReference.data()
+  } catch (err) {
+    functions.logger.error(err)
+  }
+  return data
 }
 
 exports.main = functions
   .runWith(callableRuntimeOpts)
   .region(region)
-  .https.onCall((data, context) => {
+  .https.onCall(async (data, context) => {
+    const portfolio = await getLatestDocFromCollection('portfolioData')
+    const stockTimeSeries = await getLatestDocFromCollection('stockTimeSeries')
+    const exchangeRates = await getLatestDocFromCollection('exchangeRates')
     const response = {
       age: Date.now(),
       configs: {},
     }
-    data.charts.forEach((chartName) => {
+    for (const chartName of data.charts) {
       let stockList
       switch (chartName) {
       case 'uk':
@@ -89,78 +80,45 @@ exports.main = functions
       default:
         throw new Error('Failed to find stockList with matching identifier')
       }
-      let config
-      if (chartName != 'usa') {
-        const randData = []
-        stockList.forEach(() => {
-          randData.push(getRandomInt(30))
-        })
-        config = {
-          type: 'doughnut',
-          data: {
-            datasets: [
-              {
-                data: randData,
-                backgroundColor: availableColours
-                  .sort(() => Math.random() - 0.5)
-                  .slice(0, stockList.length),
-                label: `${chartName.toUpperCase()} Stocks`,
-              },
-            ],
-            labels: stockList,
-          },
-          options: {
-            cutout: "65%",
-            plugins: {
-              legend: {
-                display: false
-              },
-            },
-            responsive: true,
-            animation: {
-              animateScale: false,
-              animateRotate: true,
-            },
-          },
+      const currentHoldingValues = {}
+      for (const stock of stockList) {
+        let value = portfolio[stock].qty * stockTimeSeries[stock]
+        if (portfolio[stock].currency === 'GBX') {
+          value = value / 100
+        } else {
+          value = (1 / exchangeRates[portfolio[stock].currency]) * value
         }
-      } else {
-        let data = []
-        functions.logger.info(stockList())
-        Object.keys(stockList()).forEach((stock) => {
-          functions.logger.info(stockList[stock])
-          data.push(stockList[stock].qty * stockList[stock].prevClose)
-        })
-        config = {
-          type: 'doughnut',
-          data: {
-            datasets: [
-              {
-                data: data,
-                backgroundColor: availableColours
-                  .sort(() => Math.random() - 0.5)
-                  .slice(0, stockList.length),
-                label: `${chartName.toUpperCase()} Stocks`,
-              },
-            ],
-            labels: Object.keys(stockList),
-          },
-          options: {
-            cutout: "65%",
-            plugins: {
-              legend: {
-                display: false
-              },
-            },
-            responsive: true,
-            animation: {
-              animateScale: false,
-              animateRotate: true,
-            },
-          },
-        }
+        currentHoldingValues[stock] = value
       }
-      response.configs[`${chartName}`] = config
-    })
-    functions.logger.info(response)
+      const config = {
+        type: 'doughnut',
+        data: {
+          datasets: [
+            {
+              data: Object.values(currentHoldingValues),
+              backgroundColor: availableColours
+                .sort(() => Math.random() - 0.5)
+                .slice(0, stockList.length),
+              label: `${chartName.toUpperCase()} Stocks`,
+            },
+          ],
+          labels: Object.keys(currentHoldingValues),
+        },
+        options: {
+          cutout: '65%',
+          plugins: {
+            legend: {
+              display: false,
+            },
+          },
+          responsive: true,
+          animation: {
+            animateScale: false,
+            animateRotate: true,
+          },
+        },
+      }
+      response.configs[chartName] = config
+    }
     return response
   })
