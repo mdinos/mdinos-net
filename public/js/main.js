@@ -40,23 +40,6 @@ async function callGetChartConfigs(functions, chartNames) {
 }
 
 async function init() {
-  // dismiss disclaimer button
-  const dissmissCacheKey = 'shouldDismissCardImmediately'
-  let button = document.getElementById('dismiss')
-  let checkbox = document.getElementById('neverShowAgain')
-  let shouldDismissCardImmediately = localStorage.getItem(dissmissCacheKey)
-  if (shouldDismissCardImmediately === 'true') {
-    button.parentNode.remove()
-  } else {
-    button.addEventListener('click', () => {
-      let checkboxValue = checkbox.checked
-      button.parentNode.remove()
-      if (checkboxValue) {
-        localStorage.setItem(dissmissCacheKey, true)
-      }
-    })
-  }
-
   // Initialise firebase
   let myApp
   let functions
@@ -75,7 +58,7 @@ async function init() {
   const chartNames = ['uk', 'usa', 'eu']
   const localStorageKey = 'mdinosNetStockChartConfigs'
   const timeNow = Date.now()
-  const fiveMinutes = 1000 * 60 * 5
+  const fiveMinutes = 1 // 1000 * 60 * 5
   const localStorageData = JSON.parse(localStorage.getItem(localStorageKey))
   let configs
 
@@ -113,7 +96,8 @@ async function init() {
         "Failed to retrieve chart data, it's probably not your fault."
       parent.classList.add('errorMsg')
     }
-    new Chart(canvasContext, configs[chartName])
+    let c = new Chart(canvasContext, configs[chartName])
+    console.log(c)
 
     // Animate enlargening on double click
     let card = document.getElementById(`${chartName}-card`)
@@ -133,6 +117,7 @@ async function init() {
         })
       } else {
         card.classList.add('clickStockBox')
+        c.update()
         otherCards.forEach((_card) => {
           _card.classList.remove('clickStockBox')
           _card.classList.add('isInvisible')

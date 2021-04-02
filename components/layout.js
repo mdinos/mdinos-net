@@ -13,6 +13,7 @@ export default function Layout({ children, home, blog, blogPost, stocks }) {
   useEffect(() => {
     Prism.highlightAll()
   }, [])
+
   return (
     <div className={styles.container}>
       <Head>
@@ -56,8 +57,13 @@ export default function Layout({ children, home, blog, blogPost, stocks }) {
         </div>
       )}
       <footer className={styles.footer}>
-        <section className={`${utilStyles.lightText}`}>
-          <a href="https://github.com/mdinos">GitHub</a>
+        <section className={styles.footerInfo}>
+          <h5 className={`${utilStyles.lightText} ${styles.footerHeading}`}>@mdinos</h5>
+          <p className={styles.footerText}>some interesting information</p>
+        </section>
+        <section className={`${utilStyles.lightText} ${styles.footerLinks}`}>
+          <h5 className={`${utilStyles.lightText} ${styles.footerHeading}`}>Links</h5>
+          <a className={styles.footerText} href="https://github.com/mdinos">GitHub</a>
         </section>
       </footer>
     </div>
