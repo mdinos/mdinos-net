@@ -58,7 +58,7 @@ async function init() {
   const chartNames = ['uk', 'usa', 'eu']
   const localStorageKey = 'mdinosNetStockChartConfigs'
   const timeNow = Date.now()
-  const fiveMinutes = 1 // 1000 * 60 * 5
+  const tenMinutes = 1000 * 60 * 10
   const localStorageData = JSON.parse(localStorage.getItem(localStorageKey))
   let configs
 
@@ -71,14 +71,16 @@ async function init() {
 
   if (localStorageData !== 'undefined' && localStorageData !== null) {
     if (
-      timeNow - localStorageData.age > fiveMinutes ||
+      timeNow - localStorageData.age > tenMinutes ||
       !arraysMatch(Object.keys(localStorageData.configs), chartNames)
     ) {
+      console.log('refreshing data')
       await refreshData()
     } else {
       configs = localStorageData.configs
     }
   } else {
+    console.log('refreshing data')
     await refreshData()
   }
 

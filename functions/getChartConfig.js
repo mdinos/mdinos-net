@@ -32,9 +32,7 @@ function selectLatest(docs) {
     const id = doc.id
     documentIds.push(id)
   }
-  functions.logger.info(documentIds)
   const latestDocument = documentIds.sort(sortByDate)[documentIds.length - 1]
-  functions.logger.info(latestDocument)
   return latestDocument
 }
 

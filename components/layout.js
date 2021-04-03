@@ -59,11 +59,11 @@ export default function Layout({ children, home, blog, blogPost, stocks }) {
       <footer className={styles.footer}>
         <section className={styles.footerInfo}>
           <h5 className={`${utilStyles.lightText} ${styles.footerHeading}`}>@mdinos</h5>
-          <p className={styles.footerText}>some interesting information</p>
+          <p className={`${styles.footerText} ${utilStyles.lightText}`}>thanks for visiting</p>
         </section>
         <section className={`${utilStyles.lightText} ${styles.footerLinks}`}>
           <h5 className={`${utilStyles.lightText} ${styles.footerHeading}`}>Links</h5>
-          <a className={styles.footerText} href="https://github.com/mdinos">GitHub</a>
+          <a className={`${styles.footerText} ${utilStyles.lightText}`} href="https://github.com/mdinos">GitHub</a>
         </section>
       </footer>
     </div>

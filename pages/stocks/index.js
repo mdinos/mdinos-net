@@ -16,6 +16,15 @@ export default function Stocks() {
         <script type="text/javascript" type="module" src="/js/main.js"></script>
       </Head>
       <h1 className={utilStyles.headingXl}>Stocks</h1>
+      <section id='information'>
+        <p>
+          This is my stocks portfolio. The prices are in GBP, 
+          updated every 24 hours at 11PM London time.
+          <br/><br/>
+          I plan to add more detail to this page, more charts, such as profit/losses, 
+          initial investment quantites and suchlike, but for now, just current values and tickers.
+        </p>
+      </section>
       <section id="charts">
         <StockCard uk />
         <StockCard usa />
