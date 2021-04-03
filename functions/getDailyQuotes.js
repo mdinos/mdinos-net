@@ -1,13 +1,28 @@
 /* eslint-disable require-jsdoc */
 const functions = require('firebase-functions')
 const {Firestore} = require('@google-cloud/firestore')
+const {SecretManagerServiceClient} = require('@google-cloud/secret-manager')
+const fetch = require('node-fetch')
 const {bgRuntimeOpts, region} = require('./runtime.js')
+
+const firestore = new Firestore()
+const secretsClient = new SecretManagerServiceClient()
+
+const [fixerVersion] = await secretsClient.accessSecretVersion({
+  name: `projects/${functions.config().projectId}/secrets/fixer-api/versions/latest`,
+})
+const fixerAPIKey = fixerVersion.payload.data.toString('utf8')
+
+const [avVersion] = await secretsClient.accessSecretVersion({
+  name: `projects/${functions.config().projectId}/secrets/alphavantage-api/versions/latest`,
+})
+const alphaVantageAPIKey = avVersion.payload.data.toString('utf8')
 
 const got = require('got')
 const jsdom = require('jsdom')
 const {JSDOM} = jsdom
 
-const alpha = require('alphavantage')({key: 'HKT1QPUKJ9X8WGFU'})
+const alpha = require('alphavantage')({key: alphaVantageAPIKey})
 const outputSize = 'compact'
 const interval = '60min'
 const dataType = 'json'
@@ -70,15 +85,24 @@ async function getPrices(tickers) {
   return prices
 }
 
-async function pushToFirestore(prices) {
-  const firestore = new Firestore()
+async function getExchangeRates() {
+  const baseUrl = `http://data.fixer.io/api/latest?access_key=${fixerAPIKey}&symbols=GBP,USD`
+  const response = await fetch(baseUrl)
+  const data = await response.json()
+  const exchangeRates = {}
+  exchangeRates['EUR'] = 1 / data.rates.GBP
+  exchangeRates['USD'] = exchangeRates['EUR'] * data.rates.USD
+  return exchangeRates
+}
+
+async function pushToFirestore(collection, data) {
   const dateString = new Date().toISOString().substr(0, 10)
   const documentReference = firestore
-    .collection('stockTimeSeries')
+    .collection(collection)
     .doc(dateString)
-  await documentReference.set(prices)
+  await documentReference.set(data)
     .then((res) => {
-      functions.logger.info(`Set ${dateString} document successfully`, res)
+      functions.logger.info(`Set ${dateString} document in collection ${collection} successfully`, res)
     })
     .catch((err) => {
       functions.logger.error(err)
@@ -97,7 +121,9 @@ exports.main = functions
       const prices = await getPrices(symbols)
       prices['TEF'] = telefonicaPrice
       functions.logger.info(`Prices: ${JSON.stringify(prices)}`)
-      await pushToFirestore(prices)
+      await pushToFirestore('stockTimeSeries', prices)
+      const exchangeRates = getExchangeRates()
+      await pushToFirestore('exchangeRates', exchangeRates)
     } catch (err) {
       functions.logger.error(err)
     }
