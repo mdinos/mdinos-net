@@ -4,32 +4,32 @@ const {Firestore} = require('@google-cloud/firestore')
 const {SecretManagerServiceClient} = require('@google-cloud/secret-manager')
 const fetch = require('node-fetch')
 const {bgRuntimeOpts, region} = require('./runtime.js')
-
-const firestore = new Firestore()
-const secretsClient = new SecretManagerServiceClient()
-
-const [fixerVersion] = await secretsClient.accessSecretVersion({
-  name: `projects/${functions.config().projectId}/secrets/fixer-api/versions/latest`,
-})
-const fixerAPIKey = fixerVersion.payload.data.toString('utf8')
-
-const [avVersion] = await secretsClient.accessSecretVersion({
-  name: `projects/${functions.config().projectId}/secrets/alphavantage-api/versions/latest`,
-})
-const alphaVantageAPIKey = avVersion.payload.data.toString('utf8')
-
 const got = require('got')
 const jsdom = require('jsdom')
-const {JSDOM} = jsdom
 
-const alpha = require('alphavantage')({key: alphaVantageAPIKey})
-const outputSize = 'compact'
-const interval = '60min'
-const dataType = 'json'
+const {JSDOM} = jsdom
+const firestore = new Firestore()
+const secretsClient = new SecretManagerServiceClient()
 
 const symbols = ['RDSB.LON', 'LLOY.LON', 'AV.LON', 'BP.LON', 'NWG.LON',
   'IMB.LON', 'HSBA.LON', 'WFC', 'MSFT', 'VMW', 'LMT', 'BUD', 'GOOGL',
   'MRK', 'DAI.DEX', 'BMW.DEX', 'RNO.PAR']
+
+async function getFixerAPIKey() {
+  const [fixerVersion] = await secretsClient.accessSecretVersion({
+    // eslint-disable-next-line max-len
+    name: functions.config().secrets.fixer,
+  })
+  return fixerVersion.payload.data.toString('utf8')
+}
+
+async function getAlphaVantageAPIKey() {
+  const [avVersion] = await secretsClient.accessSecretVersion({
+    // eslint-disable-next-line max-len
+    name: functions.config().secrets.av,
+  })
+  return avVersion.payload.data.toString('utf8')
+}e
 
 async function getAwkwardSymbol(symbol) {
   if (symbol !== 'TEF') {
@@ -57,6 +57,11 @@ async function getAwkwardSymbol(symbol) {
 }
 
 async function getPrices(tickers) {
+  const alphaVantageAPIKey = await getAlphaVantageAPIKey()
+  const alpha = require('alphavantage')({key: alphaVantageAPIKey})
+  const outputSize = 'compact'
+  const interval = '60min'
+  const dataType = 'json'
   const prices = {}
   for (const [index, ticker] of tickers.entries()) {
     let sleepTime = 0
@@ -86,6 +91,7 @@ async function getPrices(tickers) {
 }
 
 async function getExchangeRates() {
+  const fixerAPIKey = await getFixerAPIKey()
   const baseUrl = `http://data.fixer.io/api/latest?access_key=${fixerAPIKey}&symbols=GBP,USD`
   const response = await fetch(baseUrl)
   const data = await response.json()
@@ -102,7 +108,8 @@ async function pushToFirestore(collection, data) {
     .doc(dateString)
   await documentReference.set(data)
     .then((res) => {
-      functions.logger.info(`Set ${dateString} document in collection ${collection} successfully`, res)
+      functions.logger.info(`Set ${dateString} document 
+      in collection ${collection} successfully`, res)
     })
     .catch((err) => {
       functions.logger.error(err)
@@ -113,7 +120,7 @@ exports.main = functions
   .region(region)
   .runWith(bgRuntimeOpts)
   .pubsub
-  .schedule('every day 23:00')
+  .schedule('every mon,tue,wed,thu,fri 23:00')
   .timeZone('Europe/London')
   .onRun(async (context) => {
     try {
@@ -122,7 +129,7 @@ exports.main = functions
       prices['TEF'] = telefonicaPrice
       functions.logger.info(`Prices: ${JSON.stringify(prices)}`)
       await pushToFirestore('stockTimeSeries', prices)
-      const exchangeRates = getExchangeRates()
+      const exchangeRates = await getExchangeRates()
       await pushToFirestore('exchangeRates', exchangeRates)
     } catch (err) {
       functions.logger.error(err)
