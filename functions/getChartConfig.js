@@ -56,7 +56,6 @@ exports.main = functions
   .runWith(callableRuntimeOpts)
   .region(region)
   .https.onCall(async (data, context) => {
-    functions.logger.info(data)
     const portfolio = await getLatestDocFromCollection('portfolioData')
     const stockTimeSeries = await getLatestDocFromCollection('stockTimeSeries')
     const exchangeRates = await getLatestDocFromCollection('exchangeRates')
