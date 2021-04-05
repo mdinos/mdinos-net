@@ -9,11 +9,13 @@
     "start": "next start",
     "prettier": "prettier -w .",
     "export": "next export",
-    "deploy": "next build && next export && firebase deploy --only hosting"
+    "deploy:hosting": "next build && next export && firebase deploy --only hosting",
+    "deploy:functions": "firebase deploy --only functions"
   },
   "dependencies": {
     "chart.js": "^3.0.0-beta.13",
     "date-fns": "^2.19.0",
+    "firebase": "^8.3.2",
     "gray-matter": "^4.0.2",
     "next": "^10.0.0",
     "prism-themes": "^1.5.0",
@@ -25,6 +27,7 @@
     "remark-html": "^13.0.1"
   },
   "devDependencies": {
+    "babel-eslint": "^10.1.0",
     "prettier": "^2.2.1"
   },
   "prettier": {
