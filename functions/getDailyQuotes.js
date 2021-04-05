@@ -29,7 +29,7 @@ async function getAlphaVantageAPIKey() {
     name: functions.config().secrets.av,
   })
   return avVersion.payload.data.toString('utf8')
-}e
+}
 
 async function getAwkwardSymbol(symbol) {
   if (symbol !== 'TEF') {

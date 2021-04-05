@@ -56,67 +56,66 @@ exports.main = functions
   .runWith(callableRuntimeOpts)
   .region(region)
   .https.onCall(async (data, context) => {
+    functions.logger.info(data)
     const portfolio = await getLatestDocFromCollection('portfolioData')
     const stockTimeSeries = await getLatestDocFromCollection('stockTimeSeries')
     const exchangeRates = await getLatestDocFromCollection('exchangeRates')
     const response = {
       age: Date.now(),
-      configs: {},
+      config: {},
     }
-    for (const chartName of data.charts) {
-      let stockList
-      switch (chartName) {
-      case 'uk':
-        stockList = ukStocks
-        break
-      case 'usa':
-        stockList = usaStocks
-        break
-      case 'eu':
-        stockList = euStocks
-        break
-      default:
-        throw new Error('Failed to find stockList with matching identifier')
+    let stockList
+    switch (data.chart) {
+    case 'uk':
+      stockList = ukStocks
+      break
+    case 'usa':
+      stockList = usaStocks
+      break
+    case 'eu':
+      stockList = euStocks
+      break
+    default:
+      throw new Error('Failed to find stockList with matching identifier')
+    }
+    const currentHoldingValues = {}
+    for (const stock of stockList) {
+      let value = portfolio[stock].qty * stockTimeSeries[stock]
+      if (portfolio[stock].currency === 'GBX') {
+        value = value / 100
+      } else {
+        value = (1 / exchangeRates[portfolio[stock].currency]) * value
       }
-      const currentHoldingValues = {}
-      for (const stock of stockList) {
-        let value = portfolio[stock].qty * stockTimeSeries[stock]
-        if (portfolio[stock].currency === 'GBX') {
-          value = value / 100
-        } else {
-          value = (1 / exchangeRates[portfolio[stock].currency]) * value
-        }
-        currentHoldingValues[stock] = value
-      }
-      const config = {
-        type: 'doughnut',
-        data: {
-          datasets: [
-            {
-              data: Object.values(currentHoldingValues),
-              backgroundColor: availableColours
-                .sort(() => Math.random() - 0.5)
-                .slice(0, stockList.length),
-              label: `${chartName.toUpperCase()} Stocks`,
-            },
-          ],
-          labels: Object.keys(currentHoldingValues),
-        },
-        options: {
-          cutout: '65%',
-          plugins: {
-            legend: {
-              display: false,
-            },
+      currentHoldingValues[stock] = value
+    }
+    const config = {
+      type: 'doughnut',
+      data: {
+        datasets: [
+          {
+            data: Object.values(currentHoldingValues),
+            backgroundColor: availableColours
+              .sort(() => Math.random() - 0.5)
+              .slice(0, stockList.length),
+            label: `${data.chart.toUpperCase()} Stocks`,
           },
-          responsive: true,
-          animation: {
-            animateScale: false,
-            animateRotate: true,
+        ],
+        labels: Object.keys(currentHoldingValues),
+      },
+      options: {
+        cutout: '65%',
+        plugins: {
+          legend: {
+            display: false,
           },
         },
-      }
-      response.configs[chartName] = config
+        responsive: true,
+        animation: {
+          animateScale: false,
+          animateRotate: true,
+        },
+      },
     }
+    response.config = config
     return response
   })

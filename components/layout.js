@@ -18,7 +18,7 @@ export default function Layout({ children, home, blog, blogPost, stocks }) {
     <div className={styles.container}>
       <Head>
         <link rel="icon" href="/favicon.ico" />
-        <meta name="description" content="A website about @mdinos" />
+        <meta name="description" content={`A website about ${siteTitle}`} />
         <meta name="og:title" content={siteTitle} />
         <script defer src="/__/firebase/8.2.7/firebase-app.js"></script>
         <script defer src="/__/firebase/8.2.7/firebase-functions.js"></script>
